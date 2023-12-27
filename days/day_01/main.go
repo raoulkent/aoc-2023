@@ -3,7 +3,6 @@ package day_01
 import (
 	"fmt"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -18,61 +17,18 @@ func Run(input []string, mode int) {
 }
 
 // Part1 solves the first part of the exercise
-func Part1(input []string) string {
+func Part1(input []string) int {
 	start := time.Now()
 	// Defer time tracking:
 	defer func() {
 		fmt.Printf("Part 1 took: %v\n", time.Since(start))
 	}()
 
-	// Channel to send the input to
-	inputChan := make(chan string, len(input))
-
-	// Channel to send the result to
-	resultChan := make(chan int)
-
-	// WaitGroup to wait for all goroutines to finish
-	var wg sync.WaitGroup
-
-	// Start the goroutine to sum the integers
-	wg.Add(1)
-	go sumFirstAndLastNumber(inputChan, &wg, resultChan)
-
-	// Send ints to the channel
-	go func() {
-		for _, line := range input {
-			inputChan <- line
-		}
-		close(inputChan)
-	}()
-
-	// Wait for the goroutines to finish
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Receive the result from the result channel
-	result := <-resultChan
-
-	return strconv.Itoa(result)
-}
-
-// Function that takes a string, and returns the first number from the left
-// and the first character that is a number from the right as a number.
-// Example: "abc123" -> "13"
-func sumFirstAndLastNumber(channel <-chan string, wg *sync.WaitGroup, resultChan chan<- int) {
-	defer wg.Done()
 	sum := 0
-
-	for line := range channel {
-		numbers := getFirstNumber(line) + getLastNumber(line)
-
-		value, _ := strconv.Atoi(numbers)
-		sum += value
+	for _, line := range input {
+		sum += sumFirstAndLastNumber(line)
 	}
-
-	resultChan <- sum
+	return sum
 }
 
 // Function that reads a string, and returns the first character that is a number from the left
@@ -94,6 +50,13 @@ func getLastNumber(line string) string {
 		}
 	}
 	return ""
+}
+
+// Function that sums the first and last number of a string
+func sumFirstAndLastNumber(line string) int {
+	numbers := getFirstNumber(line) + getLastNumber(line)
+	value, _ := strconv.Atoi(numbers)
+	return value
 }
 
 // Part2 solves the second part of the exercise
