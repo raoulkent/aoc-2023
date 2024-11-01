@@ -131,7 +131,7 @@ func Part1(input []string) string {
 }
 
 func maxColorCounts(bags []bag) bag {
-	maxBag := bag{red: 0, green: 0, blue: 0}
+	maxBag := bag{}
 	for _, b := range bags {
 		if b.red > maxBag.red {
 			maxBag.red = b.red
@@ -143,7 +143,6 @@ func maxColorCounts(bags []bag) bag {
 			maxBag.blue = b.blue
 		}
 	}
-
 	return maxBag
 }
 
@@ -155,12 +154,15 @@ func bagPower(b bag) int {
 func Part2(input []string) string {
 	start := time.Now()
 	defer func() {
-		fmt.Printf("Part 1 took: %v\n", time.Since(start))
+		fmt.Printf("Part 2 took: %v\n", time.Since(start))
 	}()
 
 	powerSum := 0
 	for _, line := range input {
 		_, sectionBags := parseLine(line)
+		if len(sectionBags) == 0 {
+			continue
+		}
 		maxBag := maxColorCounts(sectionBags)
 		powerSum += bagPower(maxBag)
 	}
