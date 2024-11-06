@@ -1,9 +1,10 @@
 package day_23_test
 
 import (
+	"testing"
+
 	"github.com/wlchs/advent_of_code_go_template/days/day_23"
 	"github.com/wlchs/advent_of_code_go_template/internal"
-	"testing"
 )
 
 func TestPartOne(t *testing.T) {
