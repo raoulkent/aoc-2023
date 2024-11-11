@@ -37,6 +37,17 @@ func findSymbolPositions(s string) []int {
 	return positions
 }
 
+func findGearSymbolPositions(s string) []int {
+	// Gear symbols are '*'
+	re := regexp.MustCompile(`\*`)
+	matches := re.FindAllStringIndex(s, -1)
+	positions := make([]int, len(matches))
+	for i, match := range matches {
+		positions[i] = match[0]
+	}
+	return positions
+}
+
 func findSymbolCoordinates(s string, y int) []coordinate {
 	positions := findSymbolPositions(s)
 	coordinates := make([]coordinate, len(positions))
@@ -69,18 +80,6 @@ func findNumberGroupCoordinates(s string, y int) [][]coordinate {
 	return coordinates
 }
 
-// isAdjacentTo checks if the coordinate c is adjacent to the coordinate d.
-// Two coordinates are considered adjacent if they are next to each other
-// horizontally, vertically, or diagonally, but not the same coordinate.
-//
-// The function returns true if the coordinates are adjacent, and false otherwise.
-//
-// Example:
-//
-//	c: (2, 3), d: (3, 3) -> true
-//	c: (2, 3), d: (2, 2) -> true
-//	c: (2, 3), d: (1, 1) -> false
-//	c: (2, 3), d: (2, 3) -> false
 func (c *coordinate) isAdjacentTo(d coordinate) bool {
 	if c.x == d.x && c.y == d.y {
 		return false
@@ -140,6 +139,7 @@ func sumOfNumberGroupsAdjacentToSymbols(rows []string) int {
 
 	for i, row := range rows {
 		symbolCoordinates = append(symbolCoordinates, findSymbolCoordinates(row, i)...)
+
 		numberGroupCoordinates := findNumberGroupCoordinates(row, i)
 		for _, groupCoordinates := range numberGroupCoordinates {
 			numberGroups = append(numberGroups, numberGroup{coordinates: groupCoordinates, value: concatenateInts(getValuesAtCoordinates(rows, groupCoordinates))})
@@ -149,6 +149,47 @@ func sumOfNumberGroupsAdjacentToSymbols(rows []string) int {
 	for _, ng := range numberGroups {
 		if ng.isAdjacentToSymbol(symbolCoordinates) {
 			sum += ng.value
+		}
+	}
+
+	return sum
+}
+
+func sumOfGearRatio(rows []string) int {
+	sum := 0
+
+	gearCoordinates := []coordinate{}
+	numberGroups := []numberGroup{}
+
+	for i, row := range rows {
+		// Find indexes of gear symbols
+		gearRowIndexes := findGearSymbolPositions(row)
+		if len(gearRowIndexes) > 0 {
+			for _, gearIndex := range gearRowIndexes {
+				gearCoordinates = append(gearCoordinates, coordinate{x: gearIndex, y: i})
+			}
+		}
+
+		// Find number groups
+		numberGroupCoordinates := findNumberGroupCoordinates(row, i)
+		for _, groupCoordinates := range numberGroupCoordinates {
+			numberGroups = append(numberGroups, numberGroup{coordinates: groupCoordinates, value: concatenateInts(getValuesAtCoordinates(rows, groupCoordinates))})
+		}
+	}
+
+	// Find the gear symbols that are adjacent to _exactly_ two number groups
+	// If a gear symbol is adjacent to two number groups, it is a valid gear symbol and the mupliple of the two numbers
+	// is added to the sum
+	for _, gearCoord := range gearCoordinates {
+		adjacentGroups := []numberGroup{}
+		for _, ng := range numberGroups {
+			if ng.isAdjacentToSymbol([]coordinate{gearCoord}) {
+				adjacentGroups = append(adjacentGroups, ng)
+			}
+		}
+		if len(adjacentGroups) == 2 {
+			sum += adjacentGroups[0].value * adjacentGroups[1].value
+			continue
 		}
 	}
 
@@ -167,5 +208,10 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	start := time.Now()
+	defer func() {
+		fmt.Printf("Part 2 took: %v\n", time.Since(start))
+	}()
+
+	return strconv.Itoa(sumOfGearRatio(input))
 }
