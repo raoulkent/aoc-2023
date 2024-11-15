@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	. "github.com/samber/lo"
 )
 
 // Run function of the daily challenge
@@ -88,7 +90,45 @@ func Part1(input []string) string {
 	return strconv.Itoa(sumOfPower2MatchedLines(input))
 }
 
+func getMatchingNumbers(s string) int {
+	leftGroup, rightGroup := captureDigitGroups(s)
+	leftDigits := captureDigits(leftGroup)
+	rightDigits := captureDigits(rightGroup)
+
+	matches := len(Intersect(leftDigits, rightDigits))
+
+	return matches
+}
+
+func totalScratchCards(input []string) int {
+	total := 0
+	additionalCards := make(map[int]int)
+
+	for i, line := range input {
+		// Find the number of additional cards for this line, and add the base card (1)
+		cardsOfThisLine := additionalCards[i]
+
+		// Find the number of matching numbers
+		matches := getMatchingNumbers(line)
+
+		// For each of the cards of this line, add an additional card for the subsequent [matches] lines
+		for j := 1; j <= matches; j++ {
+			additionalCards[i+j] += cardsOfThisLine + 1
+		}
+
+		// Add the number of cards of this line to the total
+		total += cardsOfThisLine + 1
+	}
+
+	return total
+}
+
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	start := time.Now()
+	defer func() {
+		fmt.Printf("Part 2 took: %v\n", time.Since(start))
+	}()
+
+	return strconv.Itoa(totalScratchCards(input))
 }
